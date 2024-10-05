@@ -1,0 +1,50 @@
+{
+  "name": "@esscrypt/histori-sdk",
+  "version": "1.0.0",
+  "description": "A TypeScript SDK for interacting with the Histori API.",
+  "main": "dist/index.js",
+  "module": "dist/index.esm.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc && rollup -c rollup.config.mjs",
+    "docs": "typedoc --out docs src",
+    "build:esm": "rollup -c rollup.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prepublishOnly": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Esscrypt/histori-sdk-ts.git"
+  },
+  "keywords": [
+    "sdk",
+    "typescript",
+    "blockchain",
+    "api",
+    "javascript",
+    "histori"
+  ],
+  "author": "Mihail Kirov",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Esscrypt/histori-sdk-ts/issues"
+  },
+  "homepage": "https://github.com/Esscrypt/histori-sdk-ts#readme",
+  "dependencies": {
+    "@rollup/plugin-json": "^6.1.0",
+    "axios": "^1.7.7"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^25.0.8",
+    "@rollup/plugin-node-resolve": "^15.3.0",
+    "@types/node": "^22.7.4",
+    "rollup": "^3.0.0",
+    "rollup-plugin-typescript2": "^0.34.1",
+    "typedoc": "^0.26.8",
+    "typescript": "^5.6.2"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ]
+}
