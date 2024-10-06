@@ -4,9 +4,13 @@ on:
   push:
     branches:
       - main
+      - 'feature/*'
+  pull_request:
+    branches:
+      - main
 
 jobs:
-  build-and-publish:
+  build-and-test:
     runs-on: ubuntu-latest
 
     steps:
@@ -37,17 +41,17 @@ jobs:
       - name: Build Documentation
         run: npm run docs
 
-      # Deploy to GitHub Pages
+      # Deploy to GitHub Pages (only on main branch push)
       - name: Deploy to GitHub Pages
-        if: success()
+        if: github.ref == 'refs/heads/main' && success()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
 
-      # Publish to npm
+      # Publish to npm (only on main branch push)
       - name: Publish to npm
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' && success()
         run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

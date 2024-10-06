@@ -16,17 +16,16 @@ The Histori SDK is the easiest way to interact with the Histori API for working 
   - [Documentation](#documentation)
   - [Installation](#installation)
   - [Creating a Client with HistoriClient](#creating-a-client-with-historiclient)
-    - [Options for HistoriClient](#options-for-historiclient)
   - [Using the HistoriClient](#using-the-historiclient)
     - [Fetching Tokens](#fetching-tokens)
-  - [Fetching Balance](#fetching-balance)
-  - [Fetching Allowance](#fetching-allowance)
-  - [Default Network and Version](#default-network-and-version)
-    - [Options Object in Methods](#options-object-in-methods)
-    - [Utility Functions](#utility-functions)
-  - [Error Handling](#error-handling)
+    - [Fetching Balance](#fetching-balance)
+    - [Fetching Allowance](#fetching-allowance)
   - [Examples](#examples)
+  - [Default Network and Version](#default-network-and-version)
+  - [Options Object in Methods](#options-object-in-methods)
   - [Options reference](#options-reference)
+  - [Utility Functions](#utility-functions)
+  - [Error Handling](#error-handling)
   - [Contributing](#contributing)
   - [Show Your Support](#show-your-support)
   - [License](#license)
@@ -34,6 +33,7 @@ The Histori SDK is the easiest way to interact with the Histori API for working 
 ## [Documentation](https://esscrypt.github.io/histori-sdk-ts)
 For detailed API documentation and additional examples, visit the official [Histori SDK Documentation](https://esscrypt.github.io/histori-sdk-ts) or the [Histori API Documentation](https://esscrypt.github.io/histori-docs)
 
+---
 
 ## Installation
 
@@ -47,20 +47,8 @@ The `HistoriClient` is the main entry point for interacting with the Histori API
 ```javascript
 import HistoriClient from '@esscrypt/histori-sdk';
 
-const client = new HistoriClient('<YOUR_API_KEY>', {
-  version: 'v1',          // Optional, default is 'v1'
-  network: 'eth-mainnet'  // Optional, default is 'eth-mainnet'
-});
+const client = new HistoriClient('<YOUR_API_KEY>');
 ```
-
-### Options for HistoriClient
-- `version (string)`: The API version to use. Default is 'v1'.
-- `network (string)`: The blockchain network to connect to. Default is 'eth-mainnet'.
-- `debug (boolean)`: Enables server logs for API calls. Default: false.
-- `enableRetry (boolean)`: Enables retrying API calls on rate limit errors (HTTP 429). Default: true.
-- `maxRetries (number)`: Sets the number of retries on rate limit errors. Requires enableRetry to be true. Default: 2.
-- `retryDelay (number)`: Sets the delay (in ms) before retrying on rate limit errors. Requires enableRetry to be true. Default: 2000.
-- `source (string)`: Defines the source of the request for analytics purposes.
 
 ## Using the HistoriClient
 ### Fetching Tokens
@@ -72,7 +60,7 @@ const tokens = await client.TokenService.getTokens({
 });
 ```
 
-## Fetching Balance
+### Fetching Balance
 You can use the `BalanceService` to fetch the balance of a specific wallet for a given token:
 ```javascript
     const balance = await client.BalanceService.getBalance({
@@ -82,7 +70,7 @@ You can use the `BalanceService` to fetch the balance of a specific wallet for a
     });
 ```
 
-## Fetching Allowance
+### Fetching Allowance
 The `AllowanceService` can be used to get the allowance between an owner and a spender for a specific token:
 ```javascript
 const allowance = await client.AllowanceService.getAllowance({
@@ -93,46 +81,7 @@ const allowance = await client.AllowanceService.getAllowance({
 });
 ```
 
-## Default Network and Version
-You can specify the `version` and `network` at the time of client creation. These values will be used as defaults for all subsequent API calls.
-```javascript
-const client = new HistoriClient('<YOUR_API_KEY>', {
-  version: 'v1',
-  network: 'eth-mainnet'
-});
-```
-If you want to override these defaults for a specific call, you can provide them as part of the arguments in individual methods. Example:
-```bash
-
-async function getAllowanceExample() {
-  const allowance = await client.AllowanceService.getAllowance(
-    '0xOwnerAddress',
-    '0xSpenderAddress',
-    '0xTokenAddress',
-    123456,
-    { version:'v1', network: 'eth-mainnet', debug: true, maxRetries: 3 } // Override settings for this request
-  );
-```
-
-### Options Object in Methods
-Most service methods accept an optional options object to allow for additional query parameters, providing flexibility in making API calls.
-
-### Utility Functions
-The SDK also includes various utility functions for working with blockchain data:
-
-- `bigIntParser(input: string): bigint` - Converts a string to a bigint.
-- `calculatePrettyBalance(value: number, decimals: number, isBigInt: boolean, precision: number): string `- Formats a balance into a human-readable string.
-- `isValidApiKey(apiKey: string): boolean` - Checks if an API key is valid.
-- `prettifyCurrency(amount: number, decimals: number, currency: string): string `- Formats a number into a currency string.
-
-## Error Handling
-All methods in the SDK throw errors with a standardized format:
-```bash
-{
-  "message": "Detailed error message",
-  "status": 500
-}
-```
+---
 
 ## Examples
 ```javascript
@@ -164,8 +113,28 @@ async function runExamples() {
 runExamples();
 ```
 
+## Default Network and Version
+You can specify the `version` and `network` at the time of client creation. These values will be used as defaults for all subsequent API calls.
+```javascript
+const client = new HistoriClient('<YOUR_API_KEY>', {
+  version: 'v1',
+  network: 'eth-mainnet'
+});
+```
+## Options Object in Methods
+If you want to override these defaults for a specific call, you can provide them as part of the arguments in individual methods. Example:
+```javascript
+const allowance = await client.AllowanceService.getAllowance(
+  '0xOwnerAddress',
+  '0xSpenderAddress',
+  '0xTokenAddress',
+  123456,
+  { version:'v1', network: 'eth-mainnet' } // Override settings for this request
+);
+```
+
 ## Options reference
-Here’s how to create a `HistoriClient` instance with the new options:
+Here’s how to create a `HistoriClient` instance with options:
 ```javascript
 import HistoriClient from '@esscrypt/histori-sdk';
 
@@ -178,24 +147,32 @@ const client = new HistoriClient('<YOUR_API_KEY>', {
   retryDelay: 3000, // 3 seconds
   source: 'my-analytics-source',
 });
-
-async function testClient() {
-  try {
-    const tokens = await client.getTokens({ page: 1, limit: 10 });
-    console.log('Tokens:', tokens);
-  } catch (error) {
-    console.error('Error fetching tokens:', error.message);
-  }
-}
-
-testClient();
 ```
+- `version (string)`: The API version to use. Default is 'v1'. Currently, only 'v1' is supported.
+- `network (string)`: The blockchain network to connect to. Default is 'eth-mainnet'. Currently, only 'eth-mainnet' is supported.
+- `debug (boolean)`: Enables server logs for API calls. Default: false.
+- `enableRetry (boolean)`: Enables retrying API calls on rate limit errors (HTTP 429). Default: true.
+- `maxRetries (number)`: Sets the number of retries on rate limit errors. Requires enableRetry to be true. Default: 2.
+- `retryDelay (number)`: Sets the delay (in ms) before retrying on rate limit errors. Requires enableRetry to be true. Default: 2000.
+- `source (string)`: Defines the source of the request for analytics purposes.
 
-- `debug`: Logs detailed request information if true.
-- `enableRetry`: Controls whether the client retries on HTTP 429 errors.
-- `maxRetries`: Sets the maximum number of retry attempts.
-- `retryDelay`: Specifies the delay between retries in milliseconds.
-- `source`: Appended to request parameters for analytics purposes.
+
+## Utility Functions
+The SDK also includes various utility functions for working with blockchain data:
+
+- `bigIntParser(input: string): bigint` - Converts a string to a bigint.
+- `calculatePrettyBalance(value: number, decimals: number, isBigInt: boolean, precision: number): string `- Formats a balance into a human-readable string.
+- `isValidApiKey(apiKey: string): boolean` - Checks if an API key is valid.
+- `prettifyCurrency(amount: number, decimals: number, currency: string): string `- Formats a number into a currency string.
+
+## Error Handling
+All methods in the SDK throw errors with a standardized format:
+```bash
+{
+  "message": "Detailed error message",
+  "status": 500
+}
+```
 
 ## Contributing
 Contributions, issues, and feature requests are welcome! Feel free to check out the issues page for open tasks.

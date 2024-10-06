@@ -79,9 +79,8 @@ describe('HistoriClient', () => {
     axiosInstance.get.mockRejectedValueOnce(new Error('Request failed'));
 
     await expect(client.makeGetRequest('/test-endpoint')).rejects.toMatchObject({
-      error: true,
-      error_message: 'Request failed',
-      error_code: 500,
+      message: 'Request failed',
+      status: 500,
     });
   });
 
