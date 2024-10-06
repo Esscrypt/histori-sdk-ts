@@ -44,3 +44,21 @@ export interface TokenIDDto {
       limit?: number;
       [key: string]: any;
   }
+
+  export interface GetAllowanceDto {
+    ownerAddress: string;
+    spenderAddress: string;
+    tokenAddress: string;
+    blockNumber?: number;
+  }
+
+  export interface GetBalanceDto {
+    walletAddress: string;
+    tokenAddress: string;
+    blockNumber: number;
+  }
+  
+  export interface GetTokensDto {
+    page: number;
+    limit: number;
+  }
