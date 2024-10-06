@@ -94,6 +94,10 @@ jobs:
 
       - name: Bump version and push changes
         run: |
+          # Commit all uncommitted changes (e.g., package-lock.json) before version bump
+          git add -A
+          git commit -m "chore: prepare for version bump" || echo "No changes to commit"
+
           # Set the version bump type
           if [ "${{ github.event.inputs.major_version_bump }}" == "true" ]; then
             VERSION_BUMP="major"
@@ -101,28 +105,13 @@ jobs:
             VERSION_BUMP="patch"
           fi
 
-          # Get the new version without creating a tag yet
-          NEW_VERSION=$(npm version $VERSION_BUMP --no-git-tag-version)
-          NEW_TAG="v$NEW_VERSION"
-
-          # Delete the local tag if it exists
-          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
-            git tag -d "$NEW_TAG"
-          fi
-
-          # Delete the remote tag if it exists
-          if git ls-remote --tags origin | grep -q "refs/tags/$NEW_TAG"; then
-            git push origin :refs/tags/$NEW_TAG
-          fi
-
-          # Commit the version bump and create a new tag
+          # Bump version and create a tag
           npm version $VERSION_BUMP -m "chore: bump $VERSION_BUMP version to %s"
 
           # Push changes to the repository
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main --tags
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  
       
       # Publish to npm
       - name: Publish to npm
