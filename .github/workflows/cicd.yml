@@ -111,5 +111,9 @@ jobs:
       - name: Set semver tag
         run: |
           VERSION=$(node -p "require('./package.json').version")
-          git tag -a "v$VERSION" -m "Release $VERSION"
-          git push origin "v$VERSION"
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists. Skipping tag creation."
+          else
+            git tag -a "v$VERSION" -m "Release $VERSION"
+            git push origin "v$VERSION"
+          fi
