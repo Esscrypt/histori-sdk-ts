@@ -4,13 +4,21 @@ on:
   push:
     branches:
       - main
-      - 'feature/*'
+      - 'feat/*'
   pull_request:
     branches:
       - main
+      - 'feat/*'
+  workflow_dispatch:
+    inputs:
+      major_version_bump:
+        description: 'Bump the major version'
+        required: false
+        default: 'false'
 
 jobs:
-  build-and-test:
+  # Test job that runs on both main and feat/* branches
+  test:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,18 +28,47 @@ jobs:
 
       # Set up Node.js environment
       - name: Set up Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
 
       # Install dependencies
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
       # Run tests
       - name: Run tests
         run: npm test
+
+  # Build and publish job that only runs on the main branch
+  build-and-publish:
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      # Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://registry.npmjs.org'
+          cache: 'npm'
+
+      # Set up npm authentication
+      - name: Set npm registry and authenticate
+        run: |
+          npm set registry https://registry.npmjs.org/
+          echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
+
+      # Install dependencies
+      - name: Install dependencies
+        run: npm ci
 
       # Build the project
       - name: Build project
@@ -41,17 +78,34 @@ jobs:
       - name: Build Documentation
         run: npm run docs
 
-      # Deploy to GitHub Pages (only on main branch push)
+      # Deploy to GitHub Pages
       - name: Deploy to GitHub Pages
-        if: github.ref == 'refs/heads/main' && success()
+        if: success()
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
 
-      # Publish to npm (only on main branch push)
+      # Bump version
+      - name: Bump version
+        run: |
+          if [ "${{ github.event.inputs.major_version_bump }}" == "true" ]; then
+            npm version major -m "chore: bump major version to %s"
+          else
+            npm version minor -m "chore: bump minor version to %s"
+          fi
+      
+      # Publish to npm
       - name: Publish to npm
-        if: github.ref == 'refs/heads/main' && success()
-        run: npm publish
+        run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      # Set semver tag
+      - name: Set semver tag
+        run: |
+          git config user.name "GitHub Action"
+          git config user.email "action@github.com"
+          VERSION=$(node -p "require('./package.json').version")
+          git tag -a "v$VERSION" -m "Release $VERSION"
+          git push origin "v$VERSION"
