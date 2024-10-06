@@ -94,18 +94,35 @@ jobs:
 
       - name: Bump version and push changes
         run: |
+          # Set the version bump type
           if [ "${{ github.event.inputs.major_version_bump }}" == "true" ]; then
-            echo "Bumping major version..."
-            npm version major -m "chore: bump major version to %s"
+            VERSION_BUMP="major"
           else
-            echo "Bumping patch version..."
-            npm version patch -m "chore: bump patch version to %s"
+            VERSION_BUMP="patch"
           fi
-          # Push the commit and tags in a single push command
+
+          # Get the new version without creating a tag yet
+          NEW_VERSION=$(npm version $VERSION_BUMP --no-git-tag-version)
+          NEW_TAG="v$NEW_VERSION"
+
+          # Delete the local tag if it exists
+          if git rev-parse "$NEW_TAG" >/dev/null 2>&1; then
+            git tag -d "$NEW_TAG"
+          fi
+
+          # Delete the remote tag if it exists
+          if git ls-remote --tags origin | grep -q "refs/tags/$NEW_TAG"; then
+            git push origin :refs/tags/$NEW_TAG
+          fi
+
+          # Commit the version bump and create a new tag
+          npm version $VERSION_BUMP -m "chore: bump $VERSION_BUMP version to %s"
+
+          # Push changes to the repository
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main --tags
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  
+
       
       # Publish to npm
       - name: Publish to npm
