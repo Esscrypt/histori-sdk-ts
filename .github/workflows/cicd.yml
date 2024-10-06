@@ -92,14 +92,20 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./docs
 
-      # Bump version
-      - name: Bump version
+      - name: Bump version and push changes
         run: |
           if [ "${{ github.event.inputs.major_version_bump }}" == "true" ]; then
+            echo "Bumping major version..."
             npm version major -m "chore: bump major version to %s"
           else
+            echo "Bumping patch version..."
             npm version patch -m "chore: bump patch version to %s"
           fi
+          # Push the commit and tags in a single push command
+          git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} HEAD:main --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  
       
       # Publish to npm
       - name: Publish to npm
