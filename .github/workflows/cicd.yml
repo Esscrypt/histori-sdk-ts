@@ -22,22 +22,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
 
-      # Set up Node.js environment
-      - name: Set up Node.js
+      - name: Set up Node.js environment
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
 
-      # Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Run tests
       - name: Run tests
         run: npm test
 
@@ -48,72 +44,50 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout the repository
       - name: Checkout Repository
         uses: actions/checkout@v3
+        with:
+          persist-credentials: false
 
-      # Set up Node.js environment
-      - name: Set up Node.js
+      - name: Set up Node.js environment
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           registry-url: 'https://registry.npmjs.org'
           cache: 'npm'
 
-      # Set up npm authentication
       - name: Set npm registry and authenticate
         run: |
           npm set registry https://registry.npmjs.org/
           echo "//registry.npmjs.org/:_authToken=${{ secrets.NPM_TOKEN }}" > ~/.npmrc
 
-      # Set Git user identity
       - name: Set Git user identity
         run: |
           git config user.name "GitHub Action"
           git config user.email "action@github.com"
 
-      # Install dependencies
       - name: Install dependencies
         run: npm ci
 
-      # Build the project
       - name: Build project
         run: npm run build
 
-      # Generate documentation
       - name: Build Documentation
         run: npm run docs
 
-      # Deploy to GitHub Pages
-      - name: Deploy to GitHub Pages
-        if: success()
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./docs
-
-      # Bump version
-      - name: Bump version
+      - name: Bump version and push changes
         run: |
           if [ "${{ github.event.inputs.major_version_bump }}" == "true" ]; then
             npm version major -m "chore: bump major version to %s"
           else
             npm version patch -m "chore: bump patch version to %s"
           fi
-      
-      # Publish to npm
+          # Push the commit and tags in a single push command
+          git push origin HEAD:main --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Publish to npm
         run: npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
-      # Set semver tag
-      - name: Set semver tag
-        run: |
-          VERSION=$(node -p "require('./package.json').version")
-          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION already exists. Skipping tag creation."
-          else
-            git tag -a "v$VERSION" -m "Release $VERSION"
-            git push origin "v$VERSION"
-          fi
