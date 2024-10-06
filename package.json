@@ -1,6 +1,6 @@
 {
   "name": "@esscrypt/histori-sdk",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "A TypeScript SDK for interacting with the Histori API.",
   "main": "dist/index.js",
   "module": "dist/index.esm.js",
