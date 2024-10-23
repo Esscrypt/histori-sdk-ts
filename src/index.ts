@@ -1,8 +1,6 @@
+// Export all DTOs and Query Parameters
+export * from './types';
 
-import { TokenDto, BalanceDto, AllowanceDto, TokenSupplyDto, TokenIDDto, QueryParameters } from './types';
-
-export {TokenDto, BalanceDto, AllowanceDto, TokenSupplyDto, TokenIDDto, QueryParameters };
-
+// Import and export HistoriClient
 import HistoriClient from './HistoriClient';
-
 export default HistoriClient;

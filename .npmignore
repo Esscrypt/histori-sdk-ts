@@ -1,0 +1,18 @@
+# Ignore source files
+src/
+__tests__/
+*.log
+
+# Ignore local config files
+node_modules/
+coverage/
+rollup.config.mjs
+rollup.config.js
+.env
+
+# Ignore build output except for dist
+!.npmignore
+dist/
+
+# Ignore test-related files
+jest.config.js

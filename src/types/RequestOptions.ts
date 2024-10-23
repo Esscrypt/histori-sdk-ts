@@ -5,7 +5,6 @@ export interface RequestOptions {
     enableRetry?: boolean;
     maxRetries?: number;
     retryDelay?: number; // in milliseconds
-    source?: string;
     [key: string]: any; // Allow for any additional options
   }
   

@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "declaration": true, // Generate .d.ts files
+    "emitDeclarationOnly": true, // Only emit the .d.ts files (skip .js generation if not needed)
+    "outDir": "dist", // Output directory
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "target": "ES6",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "strict": true
+  },
+  "include": ["src/**/*"]
+}

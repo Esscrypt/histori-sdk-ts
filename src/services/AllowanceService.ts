@@ -1,5 +1,5 @@
 import ApiClient from '../HistoriClient';
-import { AllowanceDto, GetAllowanceDto } from '../types';
+import { AllowanceResponseDto, GetAllowanceDto } from '../types';
 import { RequestOptions } from '../types/RequestOptions';
 
 class AllowanceService {
@@ -14,20 +14,55 @@ class AllowanceService {
   }
 
   /**
-   * Retrieves the allowance for a given token and block number.
-   * @param {AllowanceDto} dto - The DTO containing all parameters for the request.
+   * Retrieves the allowance for a given token, owner, and spender at a specific block height or timestamp.
+   * @param {GetAllowanceDto} dto - The DTO containing parameters for the request.
    * @param {RequestOptions} [options] - Optional parameters to override the client's default settings for this request.
-   * @returns {Promise<AllowanceDto>} A promise that resolves to an `AllowanceDto` object containing the allowance details.
+   * @returns {Promise<AllowanceResponseDto>} A promise that resolves to an `AllowanceResponseDto` object containing the allowance details.
    */
-  async getAllowance(dto: GetAllowanceDto, options?: RequestOptions): Promise<AllowanceDto> {
-    const { ownerAddress, spenderAddress, tokenAddress, blockNumber } = dto;
+  public async getAllowanceResponse(dto: GetAllowanceDto, options?: RequestOptions): Promise<AllowanceResponseDto> {
+    const { owner, spender, tokenAddress, tag } = dto;
     const network = options?.network || this.client.network;
     const version = options?.version || this.client.version;
-    const url = `/${version}/${network}/allowance/${ownerAddress}/${spenderAddress}/${tokenAddress}/${blockNumber}`;
-    return this.client.makeGetRequest<AllowanceDto>(url, options);
+
+    // Construct the query parameters for the request
+    const queryParams: Record<string, string | number | undefined> = {
+      owner,
+      spender,
+      token_address: tokenAddress,
+    };
+
+    if(tag) {
+      if (typeof tag === 'number') {
+        queryParams['block_height'] = tag;
+      } else if (tag instanceof Date) {
+        queryParams['date'] = tag.toISOString(); // Convert Date object to ISO string
+      }
+    }
+
+    // Remove undefined values from the query parameters
+    const queryString = new URLSearchParams(
+      Object.entries(queryParams).reduce((acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = value.toString();
+        }
+        return acc;
+      }, {} as Record<string, string>)
+    ).toString();
+
+    const url = `/${version}/${network}/allowance/single?${queryString}`;
+    return this.client.makeGetRequest<AllowanceResponseDto>(url, options);
   }
 
-  // Implement other allowance-related methods as needed
+  /**
+   * Retrieves the allowance for a given token, owner, and spender at a specific block height or timestamp.
+   * @param {GetAllowanceDto} dto - The DTO containing parameters for the request.
+   * @param {RequestOptions} [options] - Optional parameters to override the client's default settings for this request.
+   * @returns {Promise<AllowanceResponseDto>} A promise that resolves to an `AllowanceResponseDto` object containing the allowance details.
+   */
+  public async getAllowance(dto: GetAllowanceDto, options?: RequestOptions): Promise<string> {
+    const response = await this.getAllowanceResponse(dto, options);
+    return response.allowance
+  }
 }
 
 export default AllowanceService;

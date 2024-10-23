@@ -1,5 +1,5 @@
 import ApiClient from '../HistoriClient';
-import { GetTokensDto, TokenDto } from '../types';
+import { PaginatedTokensResponseDto, TokenResponseDto, GetTokensDto, GetTokenByAddressDto } from '../types';
 import { RequestOptions } from '../types/RequestOptions';
 
 class TokenService {
@@ -14,31 +14,57 @@ class TokenService {
   }
 
   /**
-   * Retrieves details of a specific token by its contract address.
-   * @param {contractAddress} string - The contract address of the token to retrieve.
+   * Retrieves a paginated list of tokens, optionally filtering by token type.
+   * @param {GetTokensDto} dto - The DTO containing parameters for the request.
    * @param {RequestOptions} [options] - Optional parameters to override the client's default settings for this request.
-   * @returns {Promise<TokenDto>} A promise that resolves to a `TokenDto` object containing the token details.
+   * @returns {Promise<PaginatedTokensResponseDto>} A promise that resolves to a `PaginatedTokensResponseDto` object containing the list of tokens.
    */
-  async getTokenByAddress(contractAddress: string, options?: RequestOptions): Promise<TokenDto> {
+  async getTokens(dto?: GetTokensDto, options?: RequestOptions): Promise<PaginatedTokensResponseDto> {
+    
     const network = options?.network || this.client.network;
     const version = options?.version || this.client.version;
-    const url = `/${version}/${network}/token/${contractAddress}`;
-    return this.client.makeGetRequest<TokenDto>(url, options);
+    let url = `/${version}/${network}/tokens`;
+    if(dto) {
+      const { tokenType, page = 1, limit = 10 } = dto;
+  
+      // Construct the query parameters for the request
+      const queryParams: Record<string, string | number> = {
+        token_type: tokenType || '',
+        page,
+        limit,
+      };
+  
+      // Remove empty values from the query parameters
+      const queryString = new URLSearchParams(
+        Object.entries(queryParams).reduce((acc, [key, value]) => {
+          if (value) {
+            acc[key] = value.toString();
+          }
+          return acc;
+        }, {} as Record<string, string>)
+      ).toString();
+  
+      url = `${url}?${queryString}`;
+    }
+    return this.client.makeGetRequest<PaginatedTokensResponseDto>(url, options);
   }
 
   /**
-   * Retrieves a paginated list of tokens.
-   * @param {GetTokensDto} dto - The DTO containing pagination and query parameters.
+   * Retrieves a token by its contract address.
+   * @param {GetTokenByAddressDto} dto - The DTO containing parameters for the request.
    * @param {RequestOptions} [options] - Optional parameters to override the client's default settings for this request.
-   * @returns {Promise<TokenDto[]>} A promise that resolves to an array of `TokenDto` objects.
+   * @returns {Promise<TokenResponseDto>} A promise that resolves to a `TokenResponseDto` object containing the token details.
    */
-  async getTokens(dto: GetTokensDto, options?: RequestOptions): Promise<TokenDto[]> {
-    const {page, limit } = dto;
+  async getTokenByAddress(dto: GetTokenByAddressDto, options?: RequestOptions): Promise<TokenResponseDto> {
+    const { tokenAddress } = dto;
     const network = options?.network || this.client.network;
     const version = options?.version || this.client.version;
-    const url = `/${version}/${network}/token`;
-    return this.client.makeGetRequest<TokenDto[]>(url, { ...options, page, limit });
+
+    const url = `/${version}/${network}/tokens/single?token_address=${tokenAddress}`;
+    return this.client.makeGetRequest<TokenResponseDto>(url, options);
   }
+
+  // Implement other token-related methods as needed
 }
 
 export default TokenService;
